@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#065f46"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#ecfdf5"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- Receipt shape -->
+  <path d="M148 112c0-13.3 10.7-24 24-24h168c13.3 0 24 10.7 24 24v290l-28-20-28 20-28-20-28 20-28-20-28 20-28-20-20 14V112z" fill="url(#paper)"/>
+  <!-- Lines on receipt -->
+  <rect x="188" y="148" width="92" height="18" rx="9" fill="#059669"/>
+  <rect x="188" y="192" width="136" height="14" rx="7" fill="#94a3b8"/>
+  <rect x="188" y="226" width="108" height="14" rx="7" fill="#cbd5e1"/>
+  <rect x="188" y="260" width="124" height="14" rx="7" fill="#cbd5e1"/>
+  <line x1="184" y1="302" x2="328" y2="302" stroke="#cbd5e1" stroke-width="6" stroke-dasharray="10 8" stroke-linecap="round"/>
+  <rect x="188" y="324" width="60" height="18" rx="9" fill="#0f172a"/>
+  <rect x="268" y="324" width="56" height="18" rx="9" fill="#059669"/>
+  <!-- AI Sparkle badge -->
+  <circle cx="372" cy="144" r="56" fill="#fbbf24"/>
+  <path d="M372 108l9 27 27 9-27 9-9 27-9-27-27-9 27-9z" fill="#ffffff"/>
+</svg>
