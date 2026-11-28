@@ -1,0 +1,2071 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StrukKu — Video Tutorial Interaktif (Motion + AI Voice &amp; Subtitle)</title>
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #070d19;
+      --panel: #0f172a;
+      --panel-2: #162138;
+      --border: rgba(148, 163, 184, 0.18);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --primary: #10b981;
+      --primary-dark: #059669;
+      --accent: #fbbf24;
+      --danger: #ef4444;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 18% 0%, #0d2b24 0%, var(--bg) 52%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+      gap: 14px;
+    }
+
+    .top-bar {
+      width: 100%;
+      max-width: 1120px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand img {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+    }
+    .brand h1 {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .brand p {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill-btn {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      padding: 8px 13px;
+      border-radius: 11px;
+      font-family: inherit;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      transition: transform 0.12s, background 0.15s, border-color 0.15s;
+    }
+    .pill-btn:hover { background: var(--panel-2); border-color: rgba(16, 185, 129, 0.45); }
+    .pill-btn:active { transform: scale(0.97); }
+    .pill-btn.primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      border-color: transparent;
+      color: #fff;
+    }
+    .pill-btn.active {
+      border-color: var(--primary);
+      background: rgba(16, 185, 129, 0.16);
+      color: #6ee7b7;
+    }
+    .pill-btn.recording {
+      background: var(--danger);
+      border-color: transparent;
+      color: #fff;
+      animation: pulseRec 1.2s ease-in-out infinite;
+    }
+    @keyframes pulseRec {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55); }
+      50% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+    }
+
+    .studio-wrap {
+      width: 100%;
+      max-width: 1120px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 310px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    @media (max-width: 960px) {
+      .studio-wrap {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .stage-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    }
+
+    .canvas-shell {
+      position: relative;
+      width: 100%;
+      background: #020617;
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(148, 163, 184, 0.15);
+    }
+
+    .canvas-shell.ratio-16x9 {
+      aspect-ratio: 16 / 9;
+    }
+    .canvas-shell.ratio-9x16 {
+      width: auto;
+      max-width: 100%;
+      height: min(74vh, 720px);
+      aspect-ratio: 9 / 16;
+      margin: 0 auto;
+    }
+
+    canvas#stage {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .big-play-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.42);
+      backdrop-filter: blur(3px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: opacity 0.25s;
+    }
+    .big-play-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .big-play-circle {
+      width: 78px;
+      height: 78px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #10b981, #059669);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 12px 35px rgba(16, 185, 129, 0.55);
+      transition: transform 0.18s;
+    }
+    .big-play-overlay:hover .big-play-circle { transform: scale(1.07); }
+    .big-play-label {
+      font-size: 14px;
+      font-weight: 800;
+      color: #fff;
+      background: rgba(15, 23, 42, 0.8);
+      padding: 7px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+    }
+
+    .controls-bar {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .timeline-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .time-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      min-width: 82px;
+    }
+    .scrubber {
+      flex: 1;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.2);
+      position: relative;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    .scrubber-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #10b981, #34d399, #fbbf24);
+      border-radius: 999px;
+    }
+
+    .btn-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .btn-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .side-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .panel-title {
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6ee7b7;
+      margin-bottom: 6px;
+    }
+
+    .chapter-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .chapter-item {
+      width: 100%;
+      text-align: left;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 9px 11px;
+      color: var(--text);
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .chapter-item:hover { border-color: rgba(16, 185, 129, 0.45); }
+    .chapter-item.active {
+      border-color: var(--primary);
+      background: rgba(16, 185, 129, 0.14);
+    }
+    .chapter-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 8px;
+      background: rgba(16, 185, 129, 0.18);
+      color: #6ee7b7;
+      font-size: 11.5px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .chapter-item.active .chapter-num {
+      background: var(--primary);
+      color: #fff;
+    }
+    .chapter-meta strong {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 700;
+    }
+    .chapter-meta span {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .select-box {
+      width: 100%;
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-family: inherit;
+      font-size: 12px;
+      outline: none;
+    }
+    .select-box:focus { border-color: var(--primary); }
+
+    .setting-mini {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .setting-mini label {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 4px 0;
+    }
+    .toggle-row input {
+      accent-color: var(--primary);
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    .export-note {
+      font-size: 11.5px;
+      color: var(--muted);
+      line-height: 1.45;
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.22);
+      border-radius: 12px;
+      padding: 10px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #10b981;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 18px;
+      border-radius: 999px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+      transition: transform 0.25s ease;
+      z-index: 99;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+  <header class="top-bar">
+    <div class="brand">
+      <img src="./icons/icon-192.png" alt="StrukKu" />
+      <div>
+        <h1>StrukKu — Video Tutorial Motion Interaktif</h1>
+        <p>Dilengkapi AI Voiceover Bahasa Indonesia, Subtitle Sinkron, Musik Latar &amp; Ekspor Video</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button id="btnRatio16" class="pill-btn active">16:9 YouTube</button>
+      <button id="btnRatio9" class="pill-btn">9:16 Reels / WA</button>
+      <button id="btnDownloadSrt" class="pill-btn">Download .SRT</button>
+      <button id="btnRecordVideo" class="pill-btn primary">Rekam Video (.webm)</button>
+      <a href="./index.html" class="pill-btn">Buka Aplikasi</a>
+    </div>
+  </header>
+
+  <main class="studio-wrap">
+    <!-- Video Motion Stage -->
+    <section class="stage-card">
+      <div id="canvasShell" class="canvas-shell ratio-16x9">
+        <canvas id="stage" width="1280" height="720"></canvas>
+        <div id="playOverlay" class="big-play-overlay">
+          <div class="big-play-circle">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="#ffffff"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+          </div>
+          <div class="big-play-label">Putar Video Tutorial Interaktif (AI Voice + Subtitle)</div>
+        </div>
+      </div>
+
+      <div class="controls-bar">
+        <div class="timeline-row">
+          <span id="timeLabel" class="time-label">00:00 / 01:18</span>
+          <div id="scrubber" class="scrubber" title="Klik untuk lompat ke posisi video">
+            <div id="scrubberFill" class="scrubber-fill"></div>
+          </div>
+        </div>
+
+        <div class="btn-controls">
+          <div class="btn-group">
+            <button id="btnPlayPause" class="pill-btn primary">▶ Putar</button>
+            <button id="btnPrevScene" class="pill-btn">⏮ Sebelumnya</button>
+            <button id="btnNextScene" class="pill-btn">⏭ Berikutnya</button>
+            <button id="btnRestart" class="pill-btn">↺ Ulang</button>
+          </div>
+          <div class="btn-group">
+            <button id="btnFullscreen" class="pill-btn">⛶ Layar Penuh</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Side Panel: Chapters & AI Voice Settings -->
+    <aside class="side-panel">
+      <div>
+        <div class="panel-title">Bab Tutorial (Klik untuk Lompat)</div>
+        <div id="chapterList" class="chapter-list"></div>
+      </div>
+
+      <div class="setting-mini">
+        <div class="panel-title">Suara AI &amp; Audio</div>
+        <label for="voiceSelect">Pilih Suara AI (Disarankan Microsoft Edge / Chrome):</label>
+        <select id="voiceSelect" class="select-box">
+          <option value="">Memuat suara AI...</option>
+        </select>
+
+        <label for="rateSelect">Kecepatan Suara AI:</label>
+        <select id="rateSelect" class="select-box">
+          <option value="0.9">0.9x (Santai)</option>
+          <option value="1.0" selected>1.0x (Normal - Rekomendasi)</option>
+          <option value="1.1">1.1x (Sedikit Cepat)</option>
+          <option value="1.2">1.2x (Cepat / Reels)</option>
+        </select>
+
+        <div class="toggle-row">
+          <span>AI Voiceover (Narasi)</span>
+          <input id="chkVoice" type="checkbox" checked />
+        </div>
+        <div class="toggle-row">
+          <span>Subtitle Sinkron (Karaoke)</span>
+          <input id="chkSubtitle" type="checkbox" checked />
+        </div>
+        <div class="toggle-row">
+          <span>Musik Latar &amp; Efek Suara</span>
+          <input id="chkMusic" type="checkbox" checked />
+        </div>
+      </div>
+
+      <div class="export-note">
+        <b>Tips Rekam Video + Suara AI:</b><br/>
+        Klik <b>Rekam Video (.webm)</b> di atas. Browser akan otomatis memutar dari awal sampai selesai dan mengunduh file video siap share ke WA, TikTok, atau YouTube. Gunakan <b>Download .SRT</b> jika ingin edit ulang di CapCut.
+      </div>
+    </aside>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    (() => {
+      // ==================== SCENES & AI SCRIPT ====================
+      const SCENES = [
+        {
+          id: 'intro',
+          badge: '01 • PERKENALAN',
+          title: 'Kenalan dengan StrukKu',
+          subtitleTitle: 'Catat Keuangan Semudah Foto Struk',
+          duration: 9.5,
+          accent: '#10b981',
+          narration: 'Halo! Kenalin, StrukKu — aplikasi keuangan pribadi berbasis AI yang bikin catat pengeluaran jadi semudah foto struk belanja. Ringan, gratis, dan langsung jalan di HP kamu.'
+        },
+        {
+          id: 'install',
+          badge: '02 • INSTALL 1-KETUKAN',
+          title: 'Pasang di HP Tanpa Play Store',
+          subtitleTitle: 'PWA Ringan • Jalan Offline',
+          duration: 11.5,
+          accent: '#059669',
+          narration: 'Cara pakainya gampang banget. Cukup buka link StrukKu di browser HP, pilih mulai catatan baru atau coba data contoh, lalu ketuk banner Pasang di Layar Utama. Tanpa lewat Play Store, ikon StrukKu langsung terpasang dan bisa dipakai offline.'
+        },
+        {
+          id: 'scan',
+          badge: '03 • FITUR UNGGULAN AI',
+          title: 'Scan Struk Otomatis (Gemini AI)',
+          subtitleTitle: 'Baca Toko, Item, Diskon & Total',
+          duration: 15.0,
+          accent: '#34d399',
+          narration: 'Ini fitur andalannya: Scan Struk AI! Ketuk tombol kamera di tengah bawah, foto struk belanjamu atau pilih dari galeri. Gemini AI langsung membaca nama toko, rincian item, diskon, metode bayar, sampai total akhirnya secara otomatis — tanpa perlu atur API Key! Tinggal cek sebentar, lalu simpan.'
+        },
+        {
+          id: 'quicktx',
+          badge: '04 • CATAT CEPAT',
+          title: 'Pemasukan, Pengeluaran & Transfer',
+          subtitleTitle: 'Multi-Dompet Otomatis Terupdate',
+          duration: 11.0,
+          accent: '#38bdf8',
+          narration: 'Mau catat gaji, pemasukan tambahan, atau transfer antar dompet? Cukup pakai tombol nominal cepat di menu Pemasukan, Pengeluaran, atau Transfer. Saldo Dompet Tunai, Rekening Bank, dan E-Wallet kamu langsung terhitung otomatis.'
+        },
+        {
+          id: 'history',
+          badge: '05 • RIWAYAT & EXPORT',
+          title: 'Cari Hingga Nama Item & Export CSV',
+          subtitleTitle: 'Track Record Lengkap + Backup JSON',
+          duration: 10.5,
+          accent: '#a78bfa',
+          narration: 'Di tab Riwayat, semua track record transaksi tersusun rapi per bulan. Kamu bisa filter khusus hasil scan struk, cari sampai ke nama barang di dalam struk, lalu export rekap bulanan ke Excel CSV atau backup JSON kapan saja.'
+        },
+        {
+          id: 'analytics',
+          badge: '06 • ANALITIK & BUDGET',
+          title: 'Grafik, Anggaran & Target Tabungan',
+          subtitleTitle: 'Kontrol Keuangan Lebih Terarah',
+          duration: 12.0,
+          accent: '#fbbf24',
+          narration: 'Biar keuangan makin terkontrol, buka tab Analitik! Ada grafik pengeluaran per kategori, tren arus kas enam bulan, pantauan anggaran dengan peringatan warna, target tabungan, sampai pengingat tagihan rutin yang bisa dicatat lunas dengan satu ketukan.'
+        },
+        {
+          id: 'outro',
+          badge: '07 • PRIVASI & BAGIKAN',
+          title: 'Mode Gelap, Privasi & Siap Dipakai!',
+          subtitleTitle: 'strukku.hafidznml.workers.dev',
+          duration: 10.5,
+          accent: '#10b981',
+          narration: 'Dilengkapi juga Mode Gelap yang nyaman di mata, Mode Privasi untuk menyembunyikan saldo, serta tombol Bagikan ke WhatsApp. Semua data tersimpan aman di perangkatmu sendiri. Yuk, mulai kelola keuangan lebih cerdas dengan StrukKu sekarang!'
+        }
+      ];
+
+      const TOTAL_DURATION = SCENES.reduce((sum, s) => sum + s.duration, 0);
+
+      // Compute cumulative start times + exact word character offsets & speaking weights
+      let acc = 0;
+      SCENES.forEach((s) => {
+        s.start = acc;
+        acc += s.duration;
+        s.end = acc;
+
+        const wordMeta = [];
+        const re = /\S+/g;
+        let m;
+        let weightSum = 0;
+        while ((m = re.exec(s.narration)) !== null) {
+          const text = m[0];
+          // Longer words and sentence punctuation take proportionally longer to speak
+          let w = Math.max(2, text.length);
+          if (/[.,!?—]/.test(text.slice(-1))) w += 4;
+          wordMeta.push({ text, startChar: m.index, endChar: m.index + text.length, cumStart: weightSum, weight: w });
+          weightSum += w;
+        }
+        wordMeta.forEach((wm) => {
+          wm.normStart = wm.cumStart / Math.max(1, weightSum);
+          wm.normEnd = (wm.cumStart + wm.weight) / Math.max(1, weightSum);
+        });
+        s.wordMeta = wordMeta;
+        s.words = wordMeta.map((w) => w.text);
+      });
+
+      // ==================== STATE & ELEMENTS ====================
+      const canvas = document.getElementById('stage');
+      const ctx = canvas.getContext('2d');
+      const canvasShell = document.getElementById('canvasShell');
+      const playOverlay = document.getElementById('playOverlay');
+      const btnPlayPause = document.getElementById('btnPlayPause');
+      const btnPrevScene = document.getElementById('btnPrevScene');
+      const btnNextScene = document.getElementById('btnNextScene');
+      const btnRestart = document.getElementById('btnRestart');
+      const btnRatio16 = document.getElementById('btnRatio16');
+      const btnRatio9 = document.getElementById('btnRatio9');
+      const btnDownloadSrt = document.getElementById('btnDownloadSrt');
+      const btnRecordVideo = document.getElementById('btnRecordVideo');
+      const btnFullscreen = document.getElementById('btnFullscreen');
+      const scrubber = document.getElementById('scrubber');
+      const scrubberFill = document.getElementById('scrubberFill');
+      const timeLabel = document.getElementById('timeLabel');
+      const chapterList = document.getElementById('chapterList');
+      const voiceSelect = document.getElementById('voiceSelect');
+      const rateSelect = document.getElementById('rateSelect');
+      const chkVoice = document.getElementById('chkVoice');
+      const chkSubtitle = document.getElementById('chkSubtitle');
+      const chkMusic = document.getElementById('chkMusic');
+      const toastEl = document.getElementById('toast');
+
+      let isVertical = false;
+      let isPlaying = false;
+      let currentTime = 0;
+      let lastFrameTs = 0;
+      let activeSceneIdx = -1;
+      let spokenSceneIdx = -1;
+      let voices = [];
+      let isRecording = false;
+      let mediaRecorder = null;
+      let recordedChunks = [];
+
+      // Real-time AI Voice <-> Subtitle synchronization state
+      let speechState = {
+        active: false,
+        sceneIdx: -1,
+        boundaryWordIdx: -1,
+        hasBoundary: false,
+        startedAt: 0,
+        finished: false,
+        finishedAt: 0
+      };
+
+      // Load StrukKu PNG logo for crisp rendering
+      const logoImg = new Image();
+      logoImg.src = './icons/icon-192.png';
+
+      let toastTimer = null;
+      function showToast(msg) {
+        toastEl.textContent = msg;
+        toastEl.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toastEl.classList.remove('show'), 3200);
+      }
+
+      // ==================== PROCEDURAL WEB AUDIO (BGM + UI SFX) ====================
+      let audioCtx = null;
+      let masterGain = null;
+      let audioDest = null;
+      let bgmInterval = null;
+      let bgmStep = 0;
+
+      function initAudio() {
+        if (audioCtx) return;
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+        audioCtx = new AC();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = 0.22;
+        audioDest = audioCtx.createMediaStreamDestination();
+        masterGain.connect(audioCtx.destination);
+        masterGain.connect(audioDest);
+      }
+
+      function playTone(freq, dur, type = 'sine', vol = 0.12, delay = 0) {
+        if (!audioCtx || !chkMusic.checked) return;
+        const now = audioCtx.currentTime + delay;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(vol, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+        osc.connect(gain);
+        gain.connect(masterGain);
+        osc.start(now);
+        osc.stop(now + dur + 0.03);
+      }
+
+      function playSceneSfx(sceneId) {
+        if (!audioCtx || !chkMusic.checked) return;
+        if (sceneId === 'scan') {
+          playTone(523.25, 0.14, 'triangle', 0.15, 0);
+          playTone(659.25, 0.14, 'triangle', 0.15, 0.1);
+          playTone(1046.5, 0.25, 'sine', 0.14, 0.2);
+        } else if (sceneId === 'outro') {
+          playTone(523.25, 0.25, 'sine', 0.15, 0);
+          playTone(659.25, 0.25, 'sine', 0.15, 0.12);
+          playTone(783.99, 0.35, 'sine', 0.15, 0.24);
+          playTone(1046.5, 0.5, 'sine', 0.16, 0.36);
+        } else {
+          playTone(440, 0.1, 'sine', 0.1, 0);
+          playTone(659.25, 0.16, 'sine', 0.11, 0.07);
+        }
+      }
+
+      // Soft ambient fintech chord progression (Cmaj9 -> Am9 -> Fmaj7 -> G6)
+      const CHORDS = [
+        [261.63, 329.63, 392.0, 493.88],
+        [220.0, 261.63, 329.63, 392.0],
+        [174.61, 220.0, 261.63, 329.63],
+        [196.0, 246.94, 293.66, 329.63]
+      ];
+
+      function startBgm() {
+        initAudio();
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        if (bgmInterval) return;
+        const tick = () => {
+          if (!isPlaying || !chkMusic.checked || !audioCtx) return;
+          const chord = CHORDS[Math.floor(bgmStep / 4) % CHORDS.length];
+          const note = chord[bgmStep % chord.length];
+          const duck = chkVoice.checked ? 0.045 : 0.09;
+          playTone(note, 0.75, 'sine', duck, 0);
+          if (bgmStep % 4 === 0) {
+            playTone(chord[0] / 2, 1.4, 'triangle', duck * 0.85, 0);
+          }
+          bgmStep++;
+        };
+        tick();
+        bgmInterval = setInterval(tick, 520);
+      }
+
+      function stopBgm() {
+        if (bgmInterval) {
+          clearInterval(bgmInterval);
+          bgmInterval = null;
+        }
+      }
+
+      // ==================== AI VOICEOVER (WEB SPEECH API) ====================
+      function loadVoices() {
+        if (!('speechSynthesis' in window)) {
+          voiceSelect.innerHTML = '<option value="">Browser tidak mendukung AI Voice</option>';
+          return;
+        }
+        voices = window.speechSynthesis.getVoices() || [];
+        if (!voices.length) return;
+
+        // Sort: Indonesian Natural/Online voices first, then other Indonesian, then rest
+        const score = (v) => {
+          const lang = (v.lang || '').toLowerCase();
+          const name = (v.name || '').toLowerCase();
+          let s = 0;
+          if (lang.startsWith('id')) s += 100;
+          if (name.includes('gadis') || name.includes('ardi')) s += 50;
+          if (name.includes('natural') || name.includes('online') || name.includes('google')) s += 30;
+          return s;
+        };
+        const sorted = [...voices].sort((a, b) => score(b) - score(a));
+        const prev = voiceSelect.value;
+        voiceSelect.innerHTML = sorted
+          .slice(0, 25)
+          .map((v) => `<option value="${v.name}">${v.name} (${v.lang})</option>`)
+          .join('');
+        if (prev && sorted.some((v) => v.name === prev)) {
+          voiceSelect.value = prev;
+        }
+      }
+
+      if ('speechSynthesis' in window) {
+        loadVoices();
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+      }
+
+      function resetSpeechState() {
+        speechState = {
+          active: false,
+          sceneIdx: -1,
+          boundaryWordIdx: -1,
+          hasBoundary: false,
+          startedAt: 0,
+          finished: false,
+          finishedAt: 0
+        };
+      }
+
+      function speakScene(idx) {
+        if (!('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel();
+        resetSpeechState();
+        if (!chkVoice.checked || !isPlaying) return;
+        const scene = SCENES[idx];
+        if (!scene) return;
+
+        const rate = Math.max(0.7, Math.min(1.5, parseFloat(rateSelect?.value) || 1.0));
+        const utter = new SpeechSynthesisUtterance(scene.narration);
+        utter.lang = 'id-ID';
+        utter.rate = rate;
+        utter.pitch = 1.02;
+        const chosen = voices.find((v) => v.name === voiceSelect.value);
+        if (chosen) utter.voice = chosen;
+
+        speechState.active = true;
+        speechState.sceneIdx = idx;
+        speechState.boundaryWordIdx = 0;
+        speechState.startedAt = performance.now();
+
+        utter.onstart = () => {
+          if (speechState.sceneIdx !== idx) return;
+          speechState.startedAt = performance.now();
+          speechState.boundaryWordIdx = 0;
+        };
+
+        utter.onboundary = (ev) => {
+          if (speechState.sceneIdx !== idx) return;
+          const ci = typeof ev.charIndex === 'number' ? ev.charIndex : -1;
+          if (ci < 0) return;
+          speechState.hasBoundary = true;
+          const meta = scene.wordMeta;
+          let found = meta.length - 1;
+          for (let i = 0; i < meta.length; i++) {
+            if (ci <= meta[i].endChar) {
+              found = i;
+              break;
+            }
+          }
+          speechState.boundaryWordIdx = found;
+        };
+
+        utter.onend = () => {
+          if (speechState.sceneIdx !== idx) return;
+          speechState.boundaryWordIdx = scene.words.length - 1;
+          speechState.finished = true;
+          speechState.finishedAt = performance.now();
+        };
+
+        utter.onerror = () => {
+          if (speechState.sceneIdx !== idx) return;
+          speechState.active = false;
+          speechState.finished = true;
+          speechState.finishedAt = performance.now();
+        };
+
+        window.speechSynthesis.speak(utter);
+      }
+
+      function stopSpeech() {
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        resetSpeechState();
+      }
+
+      // ==================== EASING & DRAWING HELPERS ====================
+      const clamp01 = (v) => Math.max(0, Math.min(1, v));
+      const easeOutCubic = (t) => 1 - Math.pow(1 - clamp01(t), 3);
+      const easeOutBack = (t) => {
+        const x = clamp01(t);
+        const c1 = 1.70158;
+        const c3 = c1 + 1;
+        return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+      };
+      const seg = (p, a, b) => clamp01((p - a) / Math.max(0.0001, b - a));
+
+      function rrect(x, y, w, h, r) {
+        const rad = Math.min(r, w / 2, h / 2);
+        ctx.beginPath();
+        ctx.moveTo(x + rad, y);
+        ctx.arcTo(x + w, y, x + w, y + h, rad);
+        ctx.arcTo(x + w, y + h, x, y + h, rad);
+        ctx.arcTo(x, y + h, x, y, rad);
+        ctx.arcTo(x, y, x + w, y, rad);
+        ctx.closePath();
+      }
+
+      function fillRRect(x, y, w, h, r, fill, stroke = null, lw = 1) {
+        rrect(x, y, w, h, r);
+        if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+        if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.stroke(); }
+      }
+
+      function drawWrappedText(text, x, y, maxW, lineH, align = 'left') {
+        const words = text.split(' ');
+        const lines = [];
+        let line = '';
+        for (const w of words) {
+          const test = line ? `${line} ${w}` : w;
+          if (ctx.measureText(test).width > maxW && line) {
+            lines.push(line);
+            line = w;
+          } else {
+            line = test;
+          }
+        }
+        if (line) lines.push(line);
+        ctx.textAlign = align;
+        lines.forEach((ln, i) => ctx.fillText(ln, x, y + i * lineH));
+        return lines.length;
+      }
+
+      function drawTapRipple(x, y, progress) {
+        if (progress <= 0 || progress >= 1) return;
+        const r = 8 + easeOutCubic(progress) * 34;
+        ctx.save();
+        ctx.strokeStyle = `rgba(16, 185, 129, ${1 - progress})`;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fillStyle = `rgba(255, 255, 255, ${(1 - progress) * 0.85})`;
+        ctx.beginPath();
+        ctx.arc(x, y, 7 * (1 - progress * 0.5), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // ==================== BACKGROUND & LAYOUT ====================
+      function drawStudioBackground(W, H, t, accent) {
+        const bg = ctx.createLinearGradient(0, 0, W, H);
+        bg.addColorStop(0, '#041219');
+        bg.addColorStop(0.55, '#071324');
+        bg.addColorStop(1, '#091a16');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, W, H);
+
+        // Animated floating aurora orbs
+        const orbs = [
+          { x: W * (0.18 + Math.sin(t * 0.45) * 0.06), y: H * (0.22 + Math.cos(t * 0.35) * 0.06), r: W * 0.34, c: accent + '26' },
+          { x: W * (0.82 + Math.cos(t * 0.38) * 0.05), y: H * (0.72 + Math.sin(t * 0.42) * 0.06), r: W * 0.32, c: '#0ea5e922' },
+          { x: W * 0.52, y: H * 0.14, r: W * 0.24, c: '#fbbf2414' }
+        ];
+        orbs.forEach((o) => {
+          const g = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, o.r);
+          g.addColorStop(0, o.c);
+          g.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = g;
+          ctx.fillRect(0, 0, W, H);
+        });
+
+        // Subtle studio dot grid
+        ctx.fillStyle = 'rgba(148, 163, 184, 0.09)';
+        const gap = 36;
+        for (let gx = 24; gx < W; gx += gap) {
+          for (let gy = 24; gy < H; gy += gap) {
+            ctx.fillRect(gx, gy, 2, 2);
+          }
+        }
+      }
+
+      // ==================== PHONE FRAME & SCREEN RENDERER ====================
+      function drawPhoneFrame(px, py, pw, ph, darkTheme, drawScreenFn) {
+        ctx.save();
+        // Phone outer drop shadow
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
+        ctx.shadowBlur = 42;
+        ctx.shadowOffsetY = 18;
+        fillRRect(px - 10, py - 10, pw + 20, ph + 20, 42, '#0f172a', 'rgba(255,255,255,0.2)', 2);
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
+
+        // Clip inside phone screen
+        rrect(px, py, pw, ph, 32);
+        ctx.clip();
+
+        ctx.fillStyle = darkTheme ? '#0b1120' : '#f1f5f9';
+        ctx.fillRect(px, py, pw, ph);
+
+        // Top dynamic island / status bar
+        ctx.fillStyle = darkTheme ? '#e2e8f0' : '#0f172a';
+        ctx.font = '700 11px "Plus Jakarta Sans", sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('09:41', px + 18, py + 20);
+        fillRRect(px + pw / 2 - 36, py + 9, 72, 16, 8, '#020617');
+        ctx.textAlign = 'right';
+        ctx.fillText('5G 100%', px + pw - 16, py + 20);
+
+        // App Header inside phone
+        const hdrY = py + 32;
+        ctx.fillStyle = darkTheme ? '#111827' : '#ffffff';
+        ctx.fillRect(px, hdrY, pw, 42);
+        ctx.fillStyle = darkTheme ? 'rgba(148,163,184,0.14)' : '#e2e8f0';
+        ctx.fillRect(px, hdrY + 41, pw, 1);
+
+        if (logoImg.complete && logoImg.naturalWidth) {
+          ctx.drawImage(logoImg, px + 14, hdrY + 7, 26, 26);
+        }
+        ctx.fillStyle = darkTheme ? '#f8fafc' : '#0f172a';
+        ctx.font = '800 14px "Plus Jakarta Sans", sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('StrukKu', px + 46, hdrY + 20);
+        ctx.fillStyle = darkTheme ? '#94a3b8' : '#64748b';
+        ctx.font = '600 9.5px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('Scan Struk AI & Keuangan', px + 46, hdrY + 32);
+
+        // Month pill
+        fillRRect(px + pw - 90, hdrY + 9, 76, 24, 999, darkTheme ? '#1e293b' : '#f1f5f9');
+        ctx.fillStyle = darkTheme ? '#e2e8f0' : '#0f172a';
+        ctx.font = '700 10.5px "Plus Jakarta Sans", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('‹ Nov 2026 ›', px + pw - 52, hdrY + 24);
+
+        // Content area callback
+        drawScreenFn(px, hdrY + 46, pw, ph - 134, darkTheme);
+
+        // Bottom Navigation Bar
+        const navY = py + ph - 54;
+        ctx.fillStyle = darkTheme ? '#111827' : '#ffffff';
+        ctx.fillRect(px, navY, pw, 54);
+        ctx.fillStyle = darkTheme ? 'rgba(148,163,184,0.14)' : '#e2e8f0';
+        ctx.fillRect(px, navY, pw, 1);
+
+        const navLabels = ['Beranda', 'Riwayat', '', 'Analitik', 'Lainnya'];
+        navLabels.forEach((lbl, i) => {
+          if (!lbl) return;
+          const cx = px + (pw / 5) * (i + 0.5);
+          ctx.fillStyle = darkTheme ? '#94a3b8' : '#64748b';
+          ctx.font = '700 9.5px "Plus Jakarta Sans", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(lbl, cx, navY + 38);
+        });
+
+        // Center Floating Scan FAB
+        const fabX = px + pw / 2;
+        const fabY = navY + 4;
+        const fabG = ctx.createLinearGradient(fabX - 24, fabY - 24, fabX + 24, fabY + 24);
+        fabG.addColorStop(0, '#10b981');
+        fabG.addColorStop(1, '#059669');
+        ctx.beginPath();
+        ctx.arc(fabX, fabY, 23, 0, Math.PI * 2);
+        ctx.fillStyle = fabG;
+        ctx.fill();
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = darkTheme ? '#111827' : '#ffffff';
+        ctx.stroke();
+
+        // Mini camera icon in FAB
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        rrect(fabX - 9, fabY - 6, 18, 13, 3);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(fabX, fabY + 1, 3.5, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      // ==================== INDIVIDUAL SCENE SCREENS ====================
+      function drawScenePhoneContent(sceneId, p, x, y, w, h, dark) {
+        const cardBg = dark ? '#1e293b' : '#ffffff';
+        const cardBorder = dark ? 'rgba(148,163,184,0.16)' : '#e2e8f0';
+        const textMain = dark ? '#f8fafc' : '#0f172a';
+        const textMuted = dark ? '#94a3b8' : '#64748b';
+
+        if (sceneId === 'install') {
+          // Onboarding first half (0..0.48), then Home + Install Banner (0.48..1)
+          if (p < 0.48) {
+            const k = easeOutBack(seg(p, 0.04, 0.22));
+            fillRRect(x + 12, y + 18 + (1 - k) * 30, w - 24, h - 30, 20, cardBg, cardBorder, 1);
+            if (logoImg.complete && logoImg.naturalWidth) {
+              ctx.drawImage(logoImg, x + w / 2 - 28, y + 40, 56, 56);
+            }
+            ctx.fillStyle = textMain;
+            ctx.font = '800 15px "Plus Jakarta Sans", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Selamat Datang di StrukKu!', x + w / 2, y + 120);
+            ctx.fillStyle = textMuted;
+            ctx.font = '500 10.5px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText('Scan struk AI & catat keuangan harian', x + w / 2, y + 137);
+
+            const feats = ['Scan Struk Otomatis AI', 'Multi-Dompet & Grafik', '100% Privasi Lokal di HP'];
+            feats.forEach((f, i) => {
+              const fy = y + 158 + i * 38;
+              fillRRect(x + 24, fy, w - 48, 30, 10, dark ? '#0f172a' : '#f8fafc', cardBorder, 1);
+              ctx.fillStyle = '#10b981';
+              ctx.textAlign = 'left';
+              ctx.font = '800 11px "Plus Jakarta Sans", sans-serif';
+              ctx.fillText('✓', x + 36, fy + 19);
+              ctx.fillStyle = textMain;
+              ctx.fillText(f, x + 52, fy + 19);
+            });
+
+            fillRRect(x + 24, y + 286, w - 48, 36, 12, '#059669');
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.font = '800 12px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText('Mulai Catatan Baru (Kosong)', x + w / 2, y + 308);
+            drawTapRipple(x + w / 2, y + 304, seg(p, 0.34, 0.47));
+          } else {
+            const p2 = seg(p, 0.48, 1);
+            // Hero card
+            const hg = ctx.createLinearGradient(x + 12, y + 8, x + w - 12, y + 120);
+            hg.addColorStop(0, '#059669');
+            hg.addColorStop(1, '#064e3b');
+            fillRRect(x + 12, y + 8, w - 24, 112, 18, hg);
+            ctx.fillStyle = 'rgba(255,255,255,0.8)';
+            ctx.font = '600 10.5px "Plus Jakarta Sans", sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText('Total Saldo Bersih', x + 26, y + 30);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '800 22px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText('Rp 25.509.500', x + 26, y + 60);
+            fillRRect(x + 24, y + 74, (w - 58) / 2, 34, 10, 'rgba(255,255,255,0.14)');
+            fillRRect(x + 34 + (w - 58) / 2, y + 74, (w - 58) / 2, 34, 10, 'rgba(255,255,255,0.14)');
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '700 10px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText('↓ Rp 9.750.000', x + 32, y + 95);
+            ctx.fillText('↑ Rp 1.270.500', x + 42 + (w - 58) / 2, y + 95);
+
+            // Highlighted Install Banner pulsing!
+            const pulse = 1 + Math.sin(p2 * Math.PI * 6) * 0.02;
+            ctx.save();
+            ctx.translate(x + w / 2, y + 160);
+            ctx.scale(pulse, pulse);
+            fillRRect(-w / 2 + 12, -28, w - 24, 56, 15, '#ecfdf5', '#10b981', 2);
+            if (logoImg.complete && logoImg.naturalWidth) {
+              ctx.drawImage(logoImg, -w / 2 + 22, -16, 32, 32);
+            }
+            ctx.fillStyle = '#0f172a';
+            ctx.font = '800 11.5px "Plus Jakarta Sans", sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText('Pasang StrukKu di Layar Utama', -w / 2 + 62, -4);
+            ctx.fillStyle = '#475569';
+            ctx.font = '600 9.5px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText('1-ketukan • Bisa dipakai offline', -w / 2 + 62, 12);
+            fillRRect(w / 2 - 74, -14, 54, 28, 9, '#059669');
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.font = '800 10.5px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText('Install', w / 2 - 47, 4);
+            ctx.restore();
+
+            drawTapRipple(x + w - 47, y + 160, seg(p2, 0.32, 0.56));
+
+            if (p2 > 0.56) {
+              const tPop = easeOutBack(seg(p2, 0.56, 0.72));
+              fillRRect(x + 28, y + 215 + (1 - tPop) * 18, w - 56, 42, 14, '#0f172a', '#10b981', 1.5);
+              ctx.fillStyle = '#6ee7b7';
+              ctx.textAlign = 'center';
+              ctx.font = '800 11.5px "Plus Jakarta Sans", sans-serif';
+              ctx.fillText('✓ Terpasang di Layar Utama HP!', x + w / 2, y + 240 + (1 - tPop) * 18);
+            }
+          }
+          return;
+        }
+
+        if (sceneId === 'scan') {
+          // Phase 1 (0..0.46): Thermal receipt + glowing green AI laser scan
+          // Phase 2 (0.46..1): Extracted structured result + Save
+          if (p < 0.46) {
+            const p1 = seg(p, 0, 0.46);
+            fillRRect(x + 14, y + 10, w - 28, h - 22, 18, '#0f172a', '#10b981', 1.5);
+            // Thermal receipt paper
+            const rx = x + 36, ry = y + 26, rw = w - 72, rh = 248;
+            fillRRect(rx, ry, rw, rh, 6, '#fffef7');
+            ctx.fillStyle = '#0f172a';
+            ctx.textAlign = 'center';
+            ctx.font = '800 12px monospace';
+            ctx.fillText('ALFAMART SUDIRMAN', x + w / 2, ry + 26);
+            ctx.fillStyle = '#64748b';
+            ctx.font = '600 9px monospace';
+            ctx.fillText('27/11/2026  14:22  QRIS', x + w / 2, ry + 42);
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.setLineDash([4, 3]);
+            ctx.beginPath();
+            ctx.moveTo(rx + 12, ry + 54);
+            ctx.lineTo(rx + rw - 12, ry + 54);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            const rItems = [
+              ['Ultra Milk 1L', '21.500'],
+              ['Roti Sari Roti', '16.500'],
+              ['Indomie (5x)', '16.000'],
+              ['Le Minerale', '10.000'],
+              ['DISKON PROMO', '-3.500']
+            ];
+            rItems.forEach((it, i) => {
+              const iy = ry + 76 + i * 24;
+              ctx.textAlign = 'left';
+              ctx.fillStyle = i === 4 ? '#059669' : '#1e293b';
+              ctx.font = '600 10px monospace';
+              ctx.fillText(it[0], rx + 14, iy);
+              ctx.textAlign = 'right';
+              ctx.fillText(it[1], rx + rw - 14, iy);
+            });
+            ctx.fillStyle = '#0f172a';
+            ctx.font = '800 12px monospace';
+            ctx.textAlign = 'left';
+            ctx.fillText('TOTAL BAYAR', rx + 14, ry + 216);
+            ctx.textAlign = 'right';
+            ctx.fillText('Rp 60.500', rx + rw - 14, ry + 216);
+
+            // Animated AI Laser Sweep
+            const laserY = ry + 14 + ((Math.sin(p1 * Math.PI * 3.5 - Math.PI / 2) + 1) / 2) * (rh - 28);
+            const lg = ctx.createLinearGradient(rx, laserY - 24, rx, laserY + 24);
+            lg.addColorStop(0, 'rgba(16, 185, 129, 0)');
+            lg.addColorStop(0.5, 'rgba(52, 211, 153, 0.55)');
+            lg.addColorStop(1, 'rgba(16, 185, 129, 0)');
+            ctx.fillStyle = lg;
+            ctx.fillRect(rx - 8, laserY - 24, rw + 16, 48);
+            ctx.fillStyle = '#6ee7b7';
+            ctx.fillRect(rx - 10, laserY - 2, rw + 20, 4);
+
+            // Status pill
+            fillRRect(x + 34, y + 292, w - 68, 34, 12, 'rgba(16, 185, 129, 0.18)', '#10b981', 1);
+            ctx.fillStyle = '#6ee7b7';
+            ctx.textAlign = 'center';
+            ctx.font = '800 11px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText('✦ Gemini AI membaca item & total...', x + w / 2, y + 313);
+          } else {
+            const p2 = seg(p, 0.46, 1);
+            fillRRect(x + 12, y + 8, w - 24, 30, 10, '#ecfdf5', '#10b981', 1);
+            ctx.fillStyle = '#047857';
+            ctx.textAlign = 'center';
+            ctx.font = '800 10.5px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText('✓ Gemini AI Selesai (98% yakin • Server Otomatis)', x + w / 2, y + 27);
+
+            // Extracted amount card
+            const s1 = easeOutCubic(seg(p2, 0.0, 0.22));
+            fillRRect(x + 12, y + 46 + (1 - s1) * 14, w - 24, 62, 14, cardBg, '#10b981', 1.5);
+            ctx.fillStyle = textMuted;
+            ctx.textAlign = 'left';
+            ctx.font = '700 10px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText('TOTAL PENGELUARAN TERDETEKSI', x + 24, y + 65 + (1 - s1) * 14);
+            ctx.fillStyle = textMain;
+            ctx.font = '800 22px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText('Rp 60.500', x + 24, y + 95 + (1 - s1) * 14);
+
+            // Extracted metadata pills
+            const rows = [
+              ['Toko', 'Alfamart Sudirman'],
+              ['Kategori', 'Belanja Harian'],
+              ['Pembayaran', 'E-Wallet / QRIS'],
+              ['Rincian', '4 item • Diskon Rp 3.500']
+            ];
+            rows.forEach((r, i) => {
+              const rs = easeOutCubic(seg(p2, 0.12 + i * 0.08, 0.32 + i * 0.08));
+              const ry = y + 118 + i * 38 + (1 - rs) * 12;
+              ctx.globalAlpha = rs;
+              fillRRect(x + 12, ry, w - 24, 32, 10, cardBg, cardBorder, 1);
+              ctx.fillStyle = textMuted;
+              ctx.textAlign = 'left';
+              ctx.font = '700 10.5px "Plus Jakarta Sans", sans-serif';
+              ctx.fillText(r[0], x + 22, ry + 20);
+              ctx.fillStyle = textMain;
+              ctx.textAlign = 'right';
+              ctx.font = '800 11px "Plus Jakarta Sans", sans-serif';
+              ctx.fillText(r[1], x + w - 22, ry + 20);
+              ctx.globalAlpha = 1;
+            });
+
+            // Save button + tap
+            fillRRect(x + 12, y + 280, w - 24, 38, 12, '#059669');
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.font = '800 12.5px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText(p2 > 0.78 ? '✓ Tersimpan ke Riwayat!' : 'Simpan Pengeluaran', x + w / 2, y + 303);
+            drawTapRipple(x + w / 2, y + 299, seg(p2, 0.65, 0.85));
+          }
+          return;
+        }
+
+        if (sceneId === 'quicktx') {
+          // Animated quick amount entry + multi-wallet update
+          const amtTarget = p < 0.25 ? 0 : p < 0.45 ? 500000 : p < 0.65 ? 1500000 : 8500000;
+          fillRRect(x + 12, y + 10, w - 24, 32, 10, dark ? '#0f172a' : '#e2e8f0');
+          fillRRect(x + 15, y + 13, (w - 30) / 3, 26, 8, '#059669');
+          ctx.font = '800 10.5px "Plus Jakarta Sans", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#fff';
+          ctx.fillText('Pemasukan', x + 15 + (w - 30) / 6, y + 30);
+          ctx.fillStyle = textMuted;
+          ctx.fillText('Pengeluaran', x + 15 + (w - 30) / 2, y + 30);
+          ctx.fillText('Transfer', x + 15 + ((w - 30) * 5) / 6, y + 30);
+
+          fillRRect(x + 12, y + 52, w - 24, 64, 14, cardBg, '#059669', 1.5);
+          ctx.fillStyle = textMuted;
+          ctx.textAlign = 'left';
+          ctx.font = '700 10px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText('NOMINAL CEPAT', x + 24, y + 70);
+          ctx.fillStyle = '#059669';
+          ctx.font = '800 22px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText(`Rp ${amtTarget.toLocaleString('id-ID')}`, x + 24, y + 100);
+
+          const pills = ['+50 rb', '+100 rb', '+500 rb', '+1 jt'];
+          pills.forEach((pl, i) => {
+            const px2 = x + 12 + i * ((w - 30) / 4 + 2);
+            const activePill = (i === 2 && p >= 0.25 && p < 0.45) || (i === 3 && p >= 0.45 && p < 0.65);
+            fillRRect(px2, y + 126, (w - 36) / 4, 28, 999, activePill ? '#059669' : cardBg, activePill ? '#059669' : cardBorder, 1);
+            ctx.fillStyle = activePill ? '#fff' : textMain;
+            ctx.textAlign = 'center';
+            ctx.font = '800 10px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText(pl, px2 + (w - 36) / 8, y + 144);
+          });
+
+          // Multi-wallet cards
+          ctx.fillStyle = textMain;
+          ctx.textAlign = 'left';
+          ctx.font = '800 12px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText('Dompet & Rekening Otomatis Update', x + 14, y + 178);
+
+          const wallets = [
+            { name: 'Dompet Tunai', bal: 'Rp 450.000', col: '#059669' },
+            { name: 'Rekening Bank', bal: p > 0.65 ? 'Rp 12.750.000' : 'Rp 4.250.000', col: '#2563eb' },
+            { name: 'E-Wallet / QRIS', bal: 'Rp 680.000', col: '#7c3aed' }
+          ];
+          wallets.forEach((wl, i) => {
+            const wy = y + 190 + i * 48;
+            const highlight = i === 1 && p > 0.65;
+            fillRRect(x + 12, wy, w - 24, 40, 12, cardBg, highlight ? '#10b981' : cardBorder, highlight ? 2 : 1);
+            fillRRect(x + 22, wy + 10, 20, 20, 6, wl.col);
+            ctx.fillStyle = textMain;
+            ctx.textAlign = 'left';
+            ctx.font = '700 11.5px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText(wl.name, x + 50, wy + 24);
+            ctx.textAlign = 'right';
+            ctx.fillStyle = highlight ? '#059669' : textMain;
+            ctx.font = '800 12px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText(wl.bal, x + w - 22, wy + 24);
+          });
+          return;
+        }
+
+        if (sceneId === 'history') {
+          const typed = 'Kopi'.slice(0, Math.floor(seg(p, 0.12, 0.38) * 5));
+          fillRRect(x + 12, y + 10, w - 24, 34, 11, cardBg, '#10b981', 1.2);
+          ctx.fillStyle = typed ? textMain : textMuted;
+          ctx.textAlign = 'left';
+          ctx.font = '600 11.5px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText(typed ? `🔍 ${typed}|` : '🔍 Cari toko atau nama item...', x + 22, y + 31);
+
+          const chips = ['Semua', 'Struk AI', 'Pengeluaran'];
+          chips.forEach((ch, i) => {
+            const cx = x + 12 + i * 82;
+            const on = i === 1;
+            fillRRect(cx, y + 52, 76, 26, 999, on ? '#059669' : cardBg, on ? '#059669' : cardBorder, 1);
+            ctx.fillStyle = on ? '#fff' : textMuted;
+            ctx.textAlign = 'center';
+            ctx.font = '700 10px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText(ch, cx + 38, y + 69);
+          });
+
+          const list = typed
+            ? [{ title: 'Kopi Kenangan', sub: 'Makan • E-Wallet • 2 item', amt: '-Rp 58.000', tag: 'Struk AI' }]
+            : [
+                { title: 'Alfamart Sudirman', sub: 'Harian • QRIS • 4 item', amt: '-Rp 60.500', tag: 'Struk AI' },
+                { title: 'Kopi Kenangan', sub: 'Makan • E-Wallet • 2 item', amt: '-Rp 58.000', tag: 'Struk AI' },
+                { title: 'SPBU Pertamina', sub: 'Transport • Tunai • 1 item', amt: '-Rp 150.000', tag: 'Struk AI' }
+              ];
+          list.forEach((tx, i) => {
+            const ty = y + 90 + i * 56;
+            fillRRect(x + 12, ty, w - 24, 48, 13, cardBg, cardBorder, 1);
+            ctx.fillStyle = textMain;
+            ctx.textAlign = 'left';
+            ctx.font = '800 11.5px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText(tx.title, x + 22, ty + 20);
+            ctx.fillStyle = textMuted;
+            ctx.font = '600 9.5px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText(tx.sub, x + 22, ty + 36);
+            ctx.fillStyle = '#ef4444';
+            ctx.textAlign = 'right';
+            ctx.font = '800 11.5px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText(tx.amt, x + w - 22, ty + 20);
+            fillRRect(x + w - 74, ty + 26, 52, 16, 999, '#ecfdf5');
+            ctx.fillStyle = '#059669';
+            ctx.textAlign = 'center';
+            ctx.font = '800 8.5px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText(tx.tag, x + w - 48, ty + 37);
+          });
+
+          // Export CSV & Backup JSON cards
+          const exS = easeOutCubic(seg(p, 0.55, 0.78));
+          ctx.globalAlpha = exS;
+          fillRRect(x + 12, y + 266, (w - 32) / 2, 44, 12, '#059669');
+          fillRRect(x + 20 + (w - 32) / 2, y + 266, (w - 32) / 2, 44, 12, cardBg, '#10b981', 1.2);
+          ctx.fillStyle = '#fff';
+          ctx.textAlign = 'center';
+          ctx.font = '800 11px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText('⬇ Export CSV', x + 12 + (w - 32) / 4, y + 292);
+          ctx.fillStyle = textMain;
+          ctx.fillText('☁ Backup JSON', x + 20 + ((w - 32) * 3) / 4, y + 292);
+          ctx.globalAlpha = 1;
+          return;
+        }
+
+        if (sceneId === 'analytics') {
+          // Animated Donut Chart + Budget Progress Bars
+          fillRRect(x + 12, y + 8, w - 24, 146, 15, cardBg, cardBorder, 1);
+          ctx.fillStyle = textMain;
+          ctx.textAlign = 'left';
+          ctx.font = '800 11.5px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText('Pengeluaran per Kategori', x + 24, y + 28);
+
+          const cx = x + 76, cy = y + 92, r = 42;
+          const slices = [
+            { pct: 0.38, col: '#f97316', label: 'Makan 38%' },
+            { pct: 0.28, col: '#10b981', label: 'Harian 28%' },
+            { pct: 0.20, col: '#eab308', label: 'Tagihan 20%' },
+            { pct: 0.14, col: '#3b82f6', label: 'Transport 14%' }
+          ];
+          const sweep = easeOutCubic(seg(p, 0.05, 0.45)) * Math.PI * 2;
+          let ang = -Math.PI / 2;
+          slices.forEach((sl) => {
+            const da = sl.pct * sweep;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, ang, ang + da);
+            ctx.strokeStyle = sl.col;
+            ctx.lineWidth = 16;
+            ctx.stroke();
+            ang += da;
+          });
+          ctx.fillStyle = textMain;
+          ctx.textAlign = 'center';
+          ctx.font = '800 10px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText('Rp 1,27 jt', cx, cy + 4);
+
+          slices.forEach((sl, i) => {
+            const ly = y + 58 + i * 22;
+            fillRRect(x + 140, ly - 8, 10, 10, 3, sl.col);
+            ctx.fillStyle = textMain;
+            ctx.textAlign = 'left';
+            ctx.font = '700 10.5px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText(sl.label, x + 156, ly + 1);
+          });
+
+          // Budgets & Goal bars
+          const bars = [
+            { title: 'Anggaran Makan', pct: 0.62, col: '#10b981', val: '62%' },
+            { title: 'Anggaran Harian', pct: 0.86, col: '#f59e0b', val: '86%' },
+            { title: 'Target Dana Darurat', pct: 0.48, col: '#2563eb', val: '48%' }
+          ];
+          const bProg = easeOutCubic(seg(p, 0.35, 0.8));
+          bars.forEach((b, i) => {
+            const by = y + 164 + i * 52;
+            fillRRect(x + 12, by, w - 24, 44, 12, cardBg, cardBorder, 1);
+            ctx.fillStyle = textMain;
+            ctx.textAlign = 'left';
+            ctx.font = '700 11px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText(b.title, x + 22, by + 18);
+            ctx.fillStyle = b.col;
+            ctx.textAlign = 'right';
+            ctx.font = '800 11px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText(b.val, x + w - 22, by + 18);
+            fillRRect(x + 22, by + 26, w - 44, 8, 999, dark ? '#0f172a' : '#e2e8f0');
+            fillRRect(x + 22, by + 26, (w - 44) * b.pct * bProg, 8, 999, b.col);
+          });
+          return;
+        }
+
+        if (sceneId === 'outro') {
+          // Dark mode + Privacy toggle + Share WhatsApp
+          const hiddenBal = p > 0.32;
+          const hg = ctx.createLinearGradient(x + 12, y + 10, x + w - 12, y + 120);
+          hg.addColorStop(0, '#059669');
+          hg.addColorStop(1, '#064e3b');
+          fillRRect(x + 12, y + 10, w - 24, 108, 18, hg);
+          ctx.fillStyle = 'rgba(255,255,255,0.85)';
+          ctx.textAlign = 'left';
+          ctx.font = '600 10.5px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText('Total Saldo Bersih', x + 24, y + 32);
+          ctx.fillStyle = '#fff';
+          ctx.font = '800 22px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText(hiddenBal ? 'Rp ••••••' : 'Rp 25.509.500', x + 24, y + 64);
+          ctx.font = '700 10px "Plus Jakarta Sans", sans-serif';
+          ctx.fillStyle = '#a7f3d0';
+          ctx.fillText(hiddenBal ? '🔒 Mode Privasi Aktif' : '🌙 Mode Gelap Nyaman di Mata', x + 24, y + 96);
+
+          const toggles = [
+            ['Mode Gelap (Dark Mode)', true],
+            ['Sembunyikan Saldo', hiddenBal]
+          ];
+          toggles.forEach((tg, i) => {
+            const ty = y + 132 + i * 48;
+            fillRRect(x + 12, ty, w - 24, 40, 12, cardBg, cardBorder, 1);
+            ctx.fillStyle = textMain;
+            ctx.textAlign = 'left';
+            ctx.font = '700 11.5px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText(tg[0], x + 22, ty + 24);
+            fillRRect(x + w - 58, ty + 10, 36, 20, 999, tg[1] ? '#10b981' : '#64748b');
+            ctx.beginPath();
+            ctx.arc(tg[1] ? x + w - 32 : x + w - 48, ty + 20, 7, 0, Math.PI * 2);
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+          });
+
+          // Share WA CTA
+          fillRRect(x + 12, y + 242, w - 24, 44, 13, '#059669');
+          ctx.fillStyle = '#fff';
+          ctx.textAlign = 'center';
+          ctx.font = '800 12px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText('📤 Bagikan StrukKu via WhatsApp', x + w / 2, y + 268);
+          drawTapRipple(x + w / 2, y + 264, seg(p, 0.58, 0.82));
+        }
+      }
+
+      // ==================== SUBTITLE BAR (VOICE-LOCKED KARAOKE) ====================
+      function getActiveWordIndex(scene, sceneIdx, sceneProgress) {
+        const meta = scene.wordMeta;
+        if (!meta.length) return 0;
+
+        // 1. Exact real-time word from SpeechSynthesis onboundary
+        if (chkVoice.checked && speechState.sceneIdx === sceneIdx && speechState.hasBoundary && speechState.boundaryWordIdx >= 0) {
+          return Math.min(meta.length - 1, speechState.boundaryWordIdx);
+        }
+
+        // 2. If voice finished, show last word
+        if (chkVoice.checked && speechState.sceneIdx === sceneIdx && speechState.finished) {
+          return meta.length - 1;
+        }
+
+        // 3. Fallback: punctuation & character-weighted progression synced to elapsed speaking time
+        let normP = sceneProgress;
+        if (chkVoice.checked && speechState.sceneIdx === sceneIdx && speechState.startedAt > 0 && isPlaying) {
+          const rate = Math.max(0.7, Math.min(1.5, parseFloat(rateSelect?.value) || 1.0));
+          const estTotalSec = Math.max(3.5, (scene.narration.length / 13.8) / rate);
+          normP = clamp01((performance.now() - speechState.startedAt) / 1000 / estTotalSec);
+        }
+
+        for (let i = 0; i < meta.length; i++) {
+          if (normP < meta[i].normEnd) return i;
+        }
+        return meta.length - 1;
+      }
+
+      function drawSubtitle(W, H, scene, sceneIdx, sceneProgress) {
+        if (!chkSubtitle.checked) return;
+        const words = scene.words;
+        const activeWordIdx = getActiveWordIndex(scene, sceneIdx, sceneProgress);
+
+        const fontSize = isVertical ? 24 : 22;
+        const lineH = isVertical ? 34 : 32;
+        ctx.font = `700 ${fontSize}px "Plus Jakarta Sans", sans-serif`;
+
+        const maxTextW = W - (isVertical ? 84 : 140);
+        const spaceW = ctx.measureText(' ').width;
+
+        // Group words into visual lines that strictly fit inside maxTextW
+        const visualLines = [];
+        let curLine = [];
+        let curW = 0;
+        words.forEach((w, idx) => {
+          const ww = ctx.measureText(w).width;
+          if (curLine.length > 0 && curW + spaceW + ww > maxTextW) {
+            visualLines.push({ items: curLine, width: curW });
+            curLine = [{ text: w, width: ww, globalIdx: idx }];
+            curW = ww;
+          } else {
+            curLine.push({ text: w, width: ww, globalIdx: idx });
+            curW = curLine.length === 1 ? ww : curW + spaceW + ww;
+          }
+        });
+        if (curLine.length > 0) visualLines.push({ items: curLine, width: curW });
+
+        // Find which visual line contains activeWordIdx, and show a 2-line window
+        let activeLineIdx = 0;
+        for (let li = 0; li < visualLines.length; li++) {
+          const items = visualLines[li].items;
+          if (activeWordIdx >= items[0].globalIdx && activeWordIdx <= items[items.length - 1].globalIdx) {
+            activeLineIdx = li;
+            break;
+          }
+        }
+        const pairStart = Math.floor(activeLineIdx / 2) * 2;
+        const visibleLines = visualLines.slice(pairStart, pairStart + 2);
+
+        const maxLineW = Math.max(...visibleLines.map((l) => l.width), 160);
+        const padX = 24;
+        const padY = 14;
+        const boxW = Math.min(W - 36, maxLineW + padX * 2);
+        const boxH = visibleLines.length * lineH + padY * 2 - 4;
+        const boxX = (W - boxW) / 2;
+        const boxY = H - boxH - (isVertical ? 34 : 18);
+
+        fillRRect(boxX, boxY, boxW, boxH, 16, 'rgba(2, 6, 23, 0.86)', 'rgba(16, 185, 129, 0.42)', 1.5);
+
+        ctx.textAlign = 'left';
+        visibleLines.forEach((ln, rowIdx) => {
+          let curX = (W - ln.width) / 2;
+          const textY = boxY + padY + rowIdx * lineH + fontSize * 0.82;
+          ln.items.forEach((it) => {
+            const isCurrent = it.globalIdx === activeWordIdx;
+            const isPast = it.globalIdx < activeWordIdx;
+            if (isCurrent) {
+              fillRRect(curX - 6, textY - fontSize + 1, it.width + 12, fontSize + 8, 8, 'rgba(16, 185, 129, 0.36)');
+              ctx.fillStyle = '#6ee7b7';
+            } else if (isPast) {
+              ctx.fillStyle = '#f8fafc';
+            } else {
+              ctx.fillStyle = '#94a3b8';
+            }
+            ctx.fillText(it.text, curX, textY);
+            curX += it.width + spaceW;
+          });
+        });
+      }
+
+      // ==================== MAIN FRAME RENDER ====================
+      function getSceneAt(t) {
+        for (let i = 0; i < SCENES.length; i++) {
+          if (t < SCENES[i].end || i === SCENES.length - 1) {
+            const s = SCENES[i];
+            return { idx: i, scene: s, progress: clamp01((t - s.start) / s.duration) };
+          }
+        }
+        return { idx: 0, scene: SCENES[0], progress: 0 };
+      }
+
+      function renderFrame(t) {
+        const W = canvas.width;
+        const H = canvas.height;
+        const { idx, scene, progress } = getSceneAt(t);
+
+        drawStudioBackground(W, H, t, scene.accent);
+
+        // Top subtle progress strip
+        ctx.fillStyle = 'rgba(255,255,255,0.08)';
+        ctx.fillRect(0, 0, W, 5);
+        ctx.fillStyle = scene.accent;
+        ctx.fillRect(0, 0, W * clamp01(t / TOTAL_DURATION), 5);
+
+        const enter = easeOutCubic(seg(progress, 0, 0.14));
+        const exit = 1 - seg(progress, 0.94, 1);
+        ctx.save();
+        ctx.globalAlpha = clamp01(enter * exit);
+
+        if (scene.id === 'intro') {
+          // Centered Hero Motion Intro
+          const sLogo = easeOutBack(seg(progress, 0.05, 0.3));
+          const cx = W / 2;
+          const cy = H * (isVertical ? 0.36 : 0.38);
+
+          // Glowing ring
+          ctx.beginPath();
+          ctx.arc(cx, cy, 82 * sLogo, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(16, 185, 129, 0.35)';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+
+          if (logoImg.complete && logoImg.naturalWidth) {
+            const sz = 118 * sLogo;
+            ctx.drawImage(logoImg, cx - sz / 2, cy - sz / 2, sz, sz);
+          }
+
+          const tSlide = easeOutCubic(seg(progress, 0.18, 0.42));
+          ctx.fillStyle = '#6ee7b7';
+          ctx.font = '800 15px "Plus Jakarta Sans", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(scene.badge, cx, cy + 102 + (1 - tSlide) * 18);
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = `800 ${isVertical ? 44 : 54}px "Plus Jakarta Sans", sans-serif`;
+          ctx.fillText('StrukKu AI', cx, cy + 158 + (1 - tSlide) * 20);
+
+          ctx.fillStyle = '#cbd5e1';
+          ctx.font = `600 ${isVertical ? 20 : 23}px "Plus Jakarta Sans", sans-serif`;
+          ctx.fillText(scene.subtitleTitle, cx, cy + 196 + (1 - tSlide) * 20);
+
+          // URL pill
+          const uPop = easeOutBack(seg(progress, 0.38, 0.6));
+          const pillW = isVertical ? 360 : 390;
+          fillRRect(cx - pillW / 2, cy + 224 + (1 - uPop) * 16, pillW, 42, 999, 'rgba(16, 185, 129, 0.16)', '#10b981', 1.5);
+          ctx.fillStyle = '#6ee7b7';
+          ctx.font = '800 15px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText('https://strukku.hafidznml.workers.dev', cx, cy + 250 + (1 - uPop) * 16);
+        } else if (!isVertical) {
+          // 16:9 Split Layout: Kinetic Typography Left + Animated Phone Right
+          const leftX = 76;
+          const slide = (1 - enter) * 28;
+
+          // Badge pill
+          fillRRect(leftX, 140 + slide, 210, 32, 999, 'rgba(16, 185, 129, 0.16)', scene.accent, 1.2);
+          ctx.fillStyle = '#6ee7b7';
+          ctx.font = '800 12.5px "Plus Jakarta Sans", sans-serif';
+          ctx.textAlign = 'left';
+          ctx.fillText(scene.badge, leftX + 16, 161 + slide);
+
+          // Main Title
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '800 42px "Plus Jakarta Sans", sans-serif';
+          const lines = drawWrappedText(scene.title, leftX, 226 + slide, 540, 52, 'left');
+
+          // Subtitle highlight
+          ctx.fillStyle = '#94a3b8';
+          ctx.font = '600 20px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText(scene.subtitleTitle, leftX, 236 + lines * 52 + slide);
+
+          // Feature bullet cards
+          const tags = {
+            install: ['✓ Tanpa Play Store / App Store', '✓ Ikon Muncul di Layar Utama HP', '✓ Tetap Jalan Saat Offline'],
+            scan: ['✓ Foto Kamera atau Pilih Galeri', '✓ Ekstrak Toko, Item & Diskon', '✓ Tanpa Perlu Isi API Key'],
+            quicktx: ['✓ Tombol Nominal Cepat Rupiah', '✓ Tunai, Bank & E-Wallet/QRIS', '✓ Transfer Antar Dompet Instan'],
+            history: ['✓ Filter Khusus Hasil Struk AI', '✓ Cari Hingga Nama Barang', '✓ Export Excel CSV & Backup JSON'],
+            analytics: ['✓ Grafik Donut & Arus Kas 6 Bulan', '✓ Peringatan Batas Anggaran', '✓ Target Tabungan & Tagihan Rutin'],
+            outro: ['✓ Mode Gelap & Mode Privasi', '✓ 100% Data Lokal di HP Kamu', '✓ Bagikan ke WhatsApp 1-Klik']
+          }[scene.id] || [];
+
+          tags.forEach((tg, i) => {
+            const tp = easeOutCubic(seg(progress, 0.12 + i * 0.1, 0.32 + i * 0.1));
+            const ty = 310 + lines * 36 + i * 44;
+            ctx.save();
+            ctx.globalAlpha = tp;
+            fillRRect(leftX, ty + (1 - tp) * 14, 380, 36, 11, 'rgba(15, 23, 42, 0.72)', 'rgba(148, 163, 184, 0.2)', 1);
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = '700 14px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText(tg, leftX + 16, ty + 23 + (1 - tp) * 14);
+            ctx.restore();
+          });
+
+          // Right Phone Mockup
+          const pw = 316, ph = 540;
+          const px = W - pw - 96;
+          const py = 62 + Math.sin(t * 1.4) * 4 + (1 - enter) * 26;
+          const darkTheme = scene.id === 'outro' && progress > 0.15;
+          drawPhoneFrame(px, py, pw, ph, darkTheme, (sx, sy, sw, sh, isDark) => {
+            drawScenePhoneContent(scene.id, progress, sx, sy, sw, sh, isDark);
+          });
+        } else {
+          // 9:16 Vertical Reels / TikTok / WA Status Layout (crisp scaled phone + zero overlap)
+          const cx = W / 2;
+          const slide = (1 - enter) * 20;
+
+          fillRRect(cx - 120, 42 + slide, 240, 34, 999, 'rgba(16, 185, 129, 0.18)', scene.accent, 1.4);
+          ctx.fillStyle = '#6ee7b7';
+          ctx.font = '800 13.5px "Plus Jakarta Sans", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(scene.badge, cx, 64 + slide);
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '800 36px "Plus Jakarta Sans", sans-serif';
+          const titleLines = drawWrappedText(scene.title, cx, 118 + slide, W - 68, 44, 'center');
+
+          ctx.fillStyle = '#94a3b8';
+          ctx.font = '600 18px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText(scene.subtitleTitle, cx, 124 + titleLines * 44 + slide);
+
+          // Vector-scaled 316x540 phone so inner UI stays 100% crisp and proportionate!
+          const phoneScale = 1.26;
+          const baseW = 316, baseH = 540;
+          const phoneTop = 232 + (titleLines > 1 ? 18 : 0) + Math.sin(t * 1.4) * 4 + (1 - enter) * 20;
+          const darkTheme = scene.id === 'outro' && progress > 0.15;
+
+          ctx.save();
+          ctx.translate(cx, phoneTop);
+          ctx.scale(phoneScale, phoneScale);
+          drawPhoneFrame(-baseW / 2, 0, baseW, baseH, darkTheme, (sx, sy, sw, sh, isDark) => {
+            drawScenePhoneContent(scene.id, progress, sx, sy, sw, sh, isDark);
+          });
+          ctx.restore();
+
+          // Compact highlight pill under phone (above subtitle)
+          const pillMap = {
+            install: '✓ Tanpa Play Store  •  Jalan Offline di HP',
+            scan: '✓ Foto Struk  •  Auto Baca Item & Total',
+            quicktx: '✓ Nominal Cepat  •  Saldo Multi-Dompet',
+            history: '✓ Cari Nama Barang  •  Export CSV & JSON',
+            analytics: '✓ Grafik Donut  •  Anggaran & Target',
+            outro: '✓ Dark Mode  •  Privasi  •  Share WA'
+          };
+          const hText = pillMap[scene.id] || '';
+          if (hText) {
+            const pY = phoneTop + baseH * phoneScale + 34;
+            fillRRect(cx - 235, pY, 470, 38, 999, 'rgba(15, 23, 42, 0.78)', 'rgba(16, 185, 129, 0.35)', 1.2);
+            ctx.fillStyle = '#a7f3d0';
+            ctx.textAlign = 'center';
+            ctx.font = '700 14.5px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText(hText, cx, pY + 24);
+          }
+        }
+
+        ctx.restore();
+
+        // Burned-in karaoke subtitle (voice-locked)
+        drawSubtitle(W, H, scene, idx, progress);
+
+        // Update UI scrubber & chapter active state
+        scrubberFill.style.width = `${clamp01(t / TOTAL_DURATION) * 100}%`;
+        timeLabel.textContent = `${fmtTime(t)} / ${fmtTime(TOTAL_DURATION)}`;
+        if (idx !== activeSceneIdx) {
+          activeSceneIdx = idx;
+          updateChapterHighlight();
+          if (isPlaying && idx !== spokenSceneIdx) {
+            spokenSceneIdx = idx;
+            playSceneSfx(scene.id);
+            speakScene(idx);
+          }
+        }
+      }
+
+      function fmtTime(sec) {
+        const s = Math.max(0, Math.floor(sec));
+        const m = Math.floor(s / 60);
+        const r = s % 60;
+        return `${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`;
+      }
+
+      // ==================== ANIMATION LOOP ====================
+      function loop(ts) {
+        if (!lastFrameTs) lastFrameTs = ts;
+        const dt = Math.min(0.1, (ts - lastFrameTs) / 1000);
+        lastFrameTs = ts;
+
+        if (isPlaying) {
+          const { idx, scene } = getSceneAt(currentTime);
+          const voiceDriven = chkVoice.checked && 'speechSynthesis' in window && speechState.sceneIdx === idx;
+
+          if (voiceDriven) {
+            const nextTime = currentTime + dt;
+            if (!speechState.finished) {
+              // Keep scene alive smoothly (max 92%) until AI voice finishes speaking this scene!
+              const holdCap = scene.start + scene.duration * 0.92;
+              currentTime = Math.min(nextTime, holdCap);
+            } else {
+              // AI voice finished! Wait a crisp 0.45s breath then advance to next scene
+              const afterEndSec = (performance.now() - speechState.finishedAt) / 1000;
+              if (afterEndSec >= 0.45) {
+                if (idx < SCENES.length - 1) {
+                  currentTime = SCENES[idx + 1].start + 0.01;
+                } else {
+                  currentTime = TOTAL_DURATION;
+                }
+              } else {
+                currentTime = Math.min(nextTime, scene.end - 0.02);
+              }
+            }
+          } else {
+            currentTime += dt;
+          }
+
+          if (currentTime >= TOTAL_DURATION) {
+            currentTime = TOTAL_DURATION;
+            renderFrame(currentTime);
+            pausePlayback();
+            if (isRecording) stopRecording();
+            showToast('Video tutorial selesai diputar!');
+            requestAnimationFrame(loop);
+            return;
+          }
+        }
+        renderFrame(currentTime);
+        requestAnimationFrame(loop);
+      }
+
+      // ==================== PLAYBACK CONTROLS ====================
+      function startPlayback() {
+        if (currentTime >= TOTAL_DURATION - 0.1) {
+          currentTime = 0;
+          spokenSceneIdx = -1;
+          activeSceneIdx = -1;
+        }
+        isPlaying = true;
+        playOverlay.classList.add('hidden');
+        btnPlayPause.textContent = '⏸ Jeda';
+        startBgm();
+        const { idx } = getSceneAt(currentTime);
+        spokenSceneIdx = idx;
+        speakScene(idx);
+      }
+
+      function pausePlayback() {
+        isPlaying = false;
+        btnPlayPause.textContent = '▶ Putar';
+        stopSpeech();
+        stopBgm();
+      }
+
+      function jumpToScene(idx) {
+        const clamped = Math.max(0, Math.min(SCENES.length - 1, idx));
+        currentTime = SCENES[clamped].start + 0.02;
+        activeSceneIdx = -1;
+        spokenSceneIdx = -1;
+        if (isPlaying) {
+          spokenSceneIdx = clamped;
+          playSceneSfx(SCENES[clamped].id);
+          speakScene(clamped);
+        }
+        renderFrame(currentTime);
+      }
+
+      // ==================== CHAPTER LIST UI ====================
+      function buildChapters() {
+        chapterList.innerHTML = SCENES.map((s, i) => `
+          <button class="chapter-item" data-idx="${i}">
+            <span class="chapter-num">${i + 1}</span>
+            <div class="chapter-meta">
+              <strong>${s.title}</strong>
+              <span>${fmtTime(s.start)} • ${s.duration.toFixed(0)} dtk</span>
+            </div>
+          </button>
+        `).join('');
+        chapterList.querySelectorAll('.chapter-item').forEach((btn) => {
+          btn.onclick = () => {
+            jumpToScene(Number(btn.dataset.idx));
+            if (!isPlaying) startPlayback();
+          };
+        });
+      }
+
+      function updateChapterHighlight() {
+        chapterList.querySelectorAll('.chapter-item').forEach((btn, i) => {
+          btn.classList.toggle('active', i === activeSceneIdx);
+        });
+      }
+
+      // ==================== EXPORT SUBTITLE (.SRT) ====================
+      function fmtSrtTime(sec) {
+        const ms = Math.floor((sec % 1) * 1000);
+        const totalSec = Math.floor(sec);
+        const h = Math.floor(totalSec / 3600);
+        const m = Math.floor((totalSec % 3600) / 60);
+        const s = totalSec % 60;
+        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')},${String(ms).padStart(3, '0')}`;
+      }
+
+      function downloadSrt() {
+        const blocks = [];
+        let seq = 1;
+        SCENES.forEach((sc) => {
+          const per = 10;
+          const chunks = [];
+          for (let i = 0; i < sc.words.length; i += per) {
+            chunks.push(sc.words.slice(i, i + per).join(' '));
+          }
+          const sliceDur = sc.duration / chunks.length;
+          chunks.forEach((txt, ci) => {
+            const t0 = sc.start + ci * sliceDur;
+            const t1 = Math.min(sc.end, t0 + sliceDur - 0.08);
+            blocks.push(`${seq++}\n${fmtSrtTime(t0)} --> ${fmtSrtTime(t1)}\n${txt}\n`);
+          });
+        });
+        const blob = new Blob([blocks.join('\n')], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'StrukKu-Tutorial-Subtitle.srt';
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast('File subtitle StrukKu-Tutorial-Subtitle.srt berhasil diunduh!');
+      }
+
+      // ==================== RECORD & DOWNLOAD VIDEO (.WEBM) ====================
+      function startRecording() {
+        if (!canvas.captureStream || !window.MediaRecorder) {
+          showToast('Browser ini belum mendukung perekaman video otomatis.');
+          return;
+        }
+        initAudio();
+        const videoStream = canvas.captureStream(30);
+        const tracks = [...videoStream.getVideoTracks()];
+        if (audioDest && audioDest.stream.getAudioTracks().length) {
+          tracks.push(...audioDest.stream.getAudioTracks());
+        }
+        const combined = new MediaStream(tracks);
+        const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')
+          ? 'video/webm;codecs=vp9,opus'
+          : MediaRecorder.isTypeSupported('video/webm;codecs=vp8')
+            ? 'video/webm;codecs=vp8'
+            : 'video/webm';
+
+        recordedChunks = [];
+        mediaRecorder = new MediaRecorder(combined, { mimeType: mime, videoBitsPerSecond: 4_500_000 });
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+        };
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(recordedChunks, { type: mime });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `StrukKu-Tutorial-${isVertical ? '9x16' : '16x9'}.webm`;
+          a.click();
+          setTimeout(() => URL.revokeObjectURL(url), 2000);
+          showToast('Video tutorial berhasil direkam & diunduh!');
+        };
+
+        isRecording = true;
+        btnRecordVideo.classList.add('recording');
+        btnRecordVideo.textContent = '⏹ Stop & Simpan';
+        currentTime = 0;
+        activeSceneIdx = -1;
+        spokenSceneIdx = -1;
+        mediaRecorder.start(250);
+        startPlayback();
+        showToast('Merekam video dari awal sampai selesai (±1 menit 20 detik)...');
+      }
+
+      function stopRecording() {
+        isRecording = false;
+        btnRecordVideo.classList.remove('recording');
+        btnRecordVideo.textContent = 'Rekam Video (.webm)';
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+          mediaRecorder.stop();
+        }
+      }
+
+      // ==================== EVENT BINDINGS ====================
+      playOverlay.onclick = startPlayback;
+      btnPlayPause.onclick = () => (isPlaying ? pausePlayback() : startPlayback());
+      btnPrevScene.onclick = () => jumpToScene(activeSceneIdx - 1);
+      btnNextScene.onclick = () => jumpToScene(activeSceneIdx + 1);
+      btnRestart.onclick = () => {
+        currentTime = 0;
+        activeSceneIdx = -1;
+        spokenSceneIdx = -1;
+        startPlayback();
+      };
+
+      scrubber.onclick = (e) => {
+        const rect = scrubber.getBoundingClientRect();
+        const ratio = clamp01((e.clientX - rect.left) / rect.width);
+        currentTime = ratio * TOTAL_DURATION;
+        activeSceneIdx = -1;
+        spokenSceneIdx = -1;
+        if (isPlaying) {
+          const { idx } = getSceneAt(currentTime);
+          spokenSceneIdx = idx;
+          speakScene(idx);
+        }
+        renderFrame(currentTime);
+      };
+
+      btnRatio16.onclick = () => {
+        isVertical = false;
+        canvas.width = 1280;
+        canvas.height = 720;
+        canvasShell.className = 'canvas-shell ratio-16x9';
+        btnRatio16.classList.add('active');
+        btnRatio9.classList.remove('active');
+        renderFrame(currentTime);
+      };
+
+      btnRatio9.onclick = () => {
+        isVertical = true;
+        canvas.width = 720;
+        canvas.height = 1280;
+        canvasShell.className = 'canvas-shell ratio-9x16';
+        btnRatio9.classList.add('active');
+        btnRatio16.classList.remove('active');
+        renderFrame(currentTime);
+      };
+
+      btnDownloadSrt.onclick = downloadSrt;
+      btnRecordVideo.onclick = () => (isRecording ? stopRecording() : startRecording());
+      btnFullscreen.onclick = () => {
+        if (document.fullscreenElement) document.exitFullscreen();
+        else canvasShell.requestFullscreen?.();
+      };
+
+      chkVoice.onchange = () => {
+        if (!chkVoice.checked) stopSpeech();
+        else if (isPlaying) speakScene(activeSceneIdx);
+      };
+      voiceSelect.onchange = () => {
+        if (isPlaying && chkVoice.checked) speakScene(activeSceneIdx);
+      };
+      if (rateSelect) {
+        rateSelect.onchange = () => {
+          if (isPlaying && chkVoice.checked) speakScene(activeSceneIdx);
+        };
+      }
+
+      buildChapters();
+      const params = new URLSearchParams(location.search);
+      if (params.get('ratio') === '9x16') btnRatio9.click();
+      if (params.has('scene')) {
+        const si = Number(params.get('scene'));
+        if (!Number.isNaN(si) && SCENES[si]) {
+          currentTime = SCENES[si].start + SCENES[si].duration * 0.55;
+          playOverlay.classList.add('hidden');
+        }
+      }
+      renderFrame(currentTime);
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>

@@ -114,10 +114,10 @@ Aturan PENTING:
   }
 
   const PREFERRED_MODELS = [
-    'gemini-3-flash-preview',
     'gemini-2.5-flash',
-    'gemini-3.1-pro-preview',
-    'gemini-2.5-flash-lite'
+    'gemini-2.5-flash-lite',
+    'gemini-3-flash-preview',
+    'gemini-3.1-pro-preview'
   ];
 
   async function discoverBestModel(apiKey) {
@@ -154,6 +154,11 @@ Aturan PENTING:
     return status === 404 || m.includes('no longer available') || m.includes('not found') || m.includes('deprecated') || m.includes('is not supported');
   }
 
+  function isQuotaOrRateLimitError(status, msg) {
+    const m = String(msg || '').toLowerCase();
+    return status === 429 || status === 503 || m.includes('quota') || m.includes('rate limit') || m.includes('resource_exhausted') || m.includes('overloaded');
+  }
+
   async function postGenerateContent(model, apiKey, payload) {
     const url = `${GEMINI_BASE}/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey.trim())}`;
     const res = await fetch(url, {
@@ -186,7 +191,7 @@ Aturan PENTING:
       const msg = res.json?.error?.message || `Error API Gemini (${res.status})`;
       lastError = msg;
 
-      if (isModelUnavailableError(res.status, msg)) {
+      if (isModelUnavailableError(res.status, msg) || isQuotaOrRateLimitError(res.status, msg)) {
         if (candidates.length === 1) {
           const discovered = await discoverBestModel(apiKey);
           candidates.push(discovered, ...PREFERRED_MODELS);

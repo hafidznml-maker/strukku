@@ -12,11 +12,13 @@
  */
 
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
+// Urutan diprioritaskan ke model dengan kuota gratis besar & cepat untuk struk,
+// dan otomatis fallback ke model berikutnya jika terkena limit (429 / quota)
 const PREFERRED_MODELS = [
-  'gemini-3-flash-preview',
   'gemini-2.5-flash',
-  'gemini-3.1-pro-preview',
-  'gemini-2.5-flash-lite'
+  'gemini-2.5-flash-lite',
+  'gemini-3-flash-preview',
+  'gemini-3.1-pro-preview'
 ];
 
 const memoryQuota = new Map();
@@ -101,44 +103,70 @@ function isModelUnavailableError(status, msg) {
   return status === 404 || m.includes('no longer available') || m.includes('not found') || m.includes('deprecated') || m.includes('is not supported');
 }
 
-async function callGeminiWithFallback(apiKey, requestedModel, payload) {
-  const tried = new Set();
-  const candidates = [];
+function isQuotaOrRateLimitError(status, msg) {
+  const m = String(msg || '').toLowerCase();
+  return (
+    status === 429 ||
+    status === 503 ||
+    m.includes('quota') ||
+    m.includes('rate limit') ||
+    m.includes('resource_exhausted') ||
+    m.includes('overloaded') ||
+    m.includes('too many requests')
+  );
+}
 
-  if (!requestedModel || requestedModel === 'auto') {
-    const best = await discoverBestModel(apiKey);
-    candidates.push(best, ...PREFERRED_MODELS);
-  } else {
-    candidates.push(requestedModel);
-  }
+function parseApiKeys(env) {
+  const raw = [env.GEMINI_API_KEY, env.GEMINI_API_KEYS].filter(Boolean).join(',');
+  return raw
+    .split(/[\n,;]+/)
+    .map((k) => k.trim())
+    .filter(Boolean);
+}
 
+async function callGeminiWithFallback(apiKeys, requestedModel, payload) {
+  const keys = Array.isArray(apiKeys) ? apiKeys : [apiKeys];
   let lastError = 'Gagal terhubung ke Gemini API.';
-  for (const model of candidates) {
-    if (!model || tried.has(model)) continue;
-    tried.add(model);
+  let lastStatus = 502;
 
-    const res = await fetch(`${GEMINI_BASE}/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const json = await res.json().catch(() => ({}));
-    if (res.ok) return { ok: true, model, json };
+  for (let kIdx = 0; kIdx < keys.length; kIdx++) {
+    const apiKey = keys[kIdx];
+    const tried = new Set();
+    const candidates = [];
 
-    const msg = json?.error?.message || `Error API Gemini (${res.status})`;
-    lastError = msg;
-
-    if (isModelUnavailableError(res.status, msg)) {
-      if (candidates.length === 1) {
-        const discovered = await discoverBestModel(apiKey);
-        candidates.push(discovered, ...PREFERRED_MODELS);
-      }
-      continue;
+    if (!requestedModel || requestedModel === 'auto') {
+      const best = await discoverBestModel(apiKey);
+      candidates.push(best, ...PREFERRED_MODELS);
+    } else {
+      candidates.push(requestedModel, ...PREFERRED_MODELS);
     }
-    return { ok: false, status: res.status, message: msg };
+
+    for (const model of candidates) {
+      if (!model || tried.has(model)) continue;
+      tried.add(model);
+
+      const res = await fetch(`${GEMINI_BASE}/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const json = await res.json().catch(() => ({}));
+      if (res.ok) return { ok: true, model, json };
+
+      const msg = json?.error?.message || `Error API Gemini (${res.status})`;
+      lastError = msg;
+      lastStatus = res.status;
+
+      // Fallback ke model berikutnya jika model tidak tersedia ATAU terkena limit/quota (429/503)
+      if (isModelUnavailableError(res.status, msg) || isQuotaOrRateLimitError(res.status, msg)) {
+        continue;
+      }
+      // Jika key tidak valid (400/401/403), coba key berikutnya jika ada
+      break;
+    }
   }
 
-  return { ok: false, status: 502, message: lastError };
+  return { ok: false, status: lastStatus, message: lastError };
 }
 
 async function handleApiScan(request, env) {
@@ -146,8 +174,8 @@ async function handleApiScan(request, env) {
     return new Response(null, { status: 204, headers: corsHeaders(env, request) });
   }
 
-  const apiKey = (env.GEMINI_API_KEY || '').trim();
-  const dailyLimit = Math.max(1, Number(env.DAILY_LIMIT) || 15);
+  const apiKeys = parseApiKeys(env);
+  const dailyLimit = Math.max(1, Number(env.DAILY_LIMIT) || 30);
   const requiredCode = (env.ACCESS_CODE || '').trim();
 
   if (request.method === 'GET') {
@@ -155,7 +183,8 @@ async function handleApiScan(request, env) {
       {
         ok: true,
         mode: 'proxy',
-        configured: Boolean(apiKey),
+        configured: apiKeys.length > 0,
+        keyCount: apiKeys.length,
         requireAccessCode: Boolean(requiredCode),
         dailyLimit
       },
@@ -169,7 +198,7 @@ async function handleApiScan(request, env) {
     return jsonResponse({ ok: false, error: 'Method tidak didukung.' }, 405, env, request);
   }
 
-  if (!apiKey) {
+  if (apiKeys.length === 0) {
     return jsonResponse({ ok: false, error: 'GEMINI_API_KEY belum diatur di Settings -> Variables and Secrets Cloudflare.' }, 503, env, request);
   }
 
@@ -193,7 +222,7 @@ async function handleApiScan(request, env) {
   const used = await getUsageCount(env, ip);
 
   if (action === 'test') {
-    const res = await callGeminiWithFallback(apiKey, requestedModel, {
+    const res = await callGeminiWithFallback(apiKeys, requestedModel, {
       contents: [{ parts: [{ text: 'Balas hanya kata: OK' }] }],
       generationConfig: { maxOutputTokens: 16 }
     });
@@ -238,7 +267,7 @@ async function handleApiScan(request, env) {
     }
   };
 
-  const res = await callGeminiWithFallback(apiKey, requestedModel, payload);
+  const res = await callGeminiWithFallback(apiKeys, requestedModel, payload);
   if (!res.ok) {
     return jsonResponse({ ok: false, error: res.message }, res.status || 502, env, request);
   }
